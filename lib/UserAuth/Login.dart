@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import 'RegisterScreen.dart';
 
@@ -16,34 +17,82 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _stayLoggedOut = false;
   bool obcursed = true;
 
-
-  Future<void> login()async{
+  Future<void> login() async {
     var email = _emailController.text;
     var password = _passwordController.text;
     print("Login Email : $email");
     print("Login Password : $password");
-    try{
-      if(email.isNotEmpty && password.isNotEmpty){
-        await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password).
-        then((value)=> Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Chatbot())));
-
-
-      }else{
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please Enter Email and Password!!!"),
+    try {
+      if (email.isNotEmpty && password.isNotEmpty) {
+        await FirebaseAuth.instance
+            .signInWithEmailAndPassword(email: email, password: password)
+            .then(
+              (value) => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => Chatbot()),
+              ),
+            );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Please Enter Email and Password!!!"),
             backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating));
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
-
-    }on FirebaseAuthException catch(e){
+    } on FirebaseAuthException catch (e) {
       print("Error for login : ${e.toString()}");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error For login : ${e.toString()}"),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error For login : ${e.toString()}"),
           backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating));
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
+
+  Future<bool> googlelogin() async {
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Sign in Sucess!!"),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+
+      if (googleUser == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Sign in error!!"),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return false;
+      }
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      return FirebaseAuth.instance.currentUser != null;
+    } on FirebaseAuthException catch (e) {
+      print("Error for login : ${e.toString()}");
+    }
+    return false;
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -61,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           // Background Gradient
           Container(
-            decoration:  BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [Colors.blueAccent, Colors.blue],
                 begin: Alignment.topCenter,
@@ -71,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           Center(
             child: SingleChildScrollView(
-              padding:  EdgeInsets.symmetric(horizontal: 24.0),
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -98,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Login Form Container
                   Container(
                     width: screenWidth * 0.85,
-                    padding:  EdgeInsets.all(24),
+                    padding: EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -106,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         BoxShadow(
                           color: Colors.black.withOpacity(0.1),
                           blurRadius: 10,
-                          offset:  Offset(0, 5),
+                          offset: Offset(0, 5),
                         ),
                       ],
                     ),
@@ -119,15 +168,23 @@ class _LoginScreenState extends State<LoginScreen> {
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             labelText: 'Email Address',
-                            labelStyle: TextStyle(color: Colors.blueGrey.shade700),
-                            prefixIcon:  Icon(Icons.email_outlined, color: Colors.blueAccent),
+                            labelStyle: TextStyle(
+                              color: Colors.blueGrey.shade700,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.email_outlined,
+                              color: Colors.blueAccent,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
                             ),
                             filled: true,
                             fillColor: Colors.blue.shade50,
-                            contentPadding:  EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 16,
+                            ),
                           ),
                         ),
                         SizedBox(height: 24),
@@ -137,22 +194,34 @@ class _LoginScreenState extends State<LoginScreen> {
                           obscureText: obcursed,
                           decoration: InputDecoration(
                             labelText: 'Password',
-                            labelStyle: TextStyle(color: Colors.blueGrey.shade700),
-                            prefixIcon:  Icon(Icons.lock_outlined, color: Colors.blueAccent),
-                            suffixIcon: IconButton(onPressed: (){
-                              setState(() {
-                                obcursed = !obcursed;
-                              });
-                            }, icon: obcursed
-                                ?  Icon(Icons.visibility_off)
-                                :  Icon(Icons.visibility)),
+                            labelStyle: TextStyle(
+                              color: Colors.blueGrey.shade700,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.lock_outlined,
+                              color: Colors.blueAccent,
+                            ),
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  obcursed = !obcursed;
+                                });
+                              },
+                              icon:
+                                  obcursed
+                                      ? Icon(Icons.visibility_off)
+                                      : Icon(Icons.visibility),
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
                             ),
                             filled: true,
                             fillColor: Colors.blue.shade50,
-                            contentPadding:  EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 16,
+                            ),
                           ),
                         ),
                         SizedBox(height: 24),
@@ -164,10 +233,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            padding:  EdgeInsets.symmetric(vertical: 16),
+                            padding: EdgeInsets.symmetric(vertical: 16),
                             elevation: 5,
                           ),
-                          child:  Text(
+                          child: Text(
                             'LOGIN',
                             style: TextStyle(
                               color: Colors.white,
@@ -177,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
 
-                        SizedBox(height: 25,),
+                        SizedBox(height: 25),
                         Row(
                           children: [
                             Expanded(
@@ -187,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             Padding(
-                              padding:  EdgeInsets.symmetric(horizontal: 16.0),
+                              padding: EdgeInsets.symmetric(horizontal: 16.0),
                               child: Text(
                                 'OR',
                                 style: GoogleFonts.poppins(
@@ -204,30 +273,30 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 20,),
+                        SizedBox(height: 20),
                         ElevatedButton.icon(
                           onPressed: () async {
-                            // bool islogin = await googlelogin();
-                            // if (islogin) {
-                            //   Navigator.pushReplacement(
-                            //       context,
-                            //       MaterialPageRoute(
-                            //           builder: (context) =>  Homescreen()));
-                            // } else {
-                            //   ScaffoldMessenger.of(context).showSnackBar(
-                            //       SnackBar(content: Text("Error in Login")));
-                            // }
+                            bool islogin = await googlelogin();
+                            if (islogin) {
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>  Chatbot()));
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Error in Login")));
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blueAccent,
                             foregroundColor: Colors.white,
-                            padding:  EdgeInsets.symmetric(vertical: 16),
+                            padding: EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                             elevation: 8,
                           ),
-                          icon:  Icon(FontAwesomeIcons.google),
+                          icon: Icon(FontAwesomeIcons.google),
                           label: Text(
                             "Continue with Google",
                             style: GoogleFonts.poppins(
@@ -237,12 +306,19 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
 
-                        SizedBox(height: 20,),
+                        SizedBox(height: 20),
 
-                        TextButton(onPressed: (){
-                          Navigator.pushReplacement(context,MaterialPageRoute(builder: (context)=> Chatbot()));
-                        }, child: Text("Stay LoggedOut"),)
-
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Chatbot(),
+                              ),
+                            );
+                          },
+                          child: Text("Stay LoggedOut"),
+                        ),
                       ],
                     ),
                   ),
@@ -257,10 +333,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.pushReplacement(context,MaterialPageRoute(builder: (context)=> RegistrationScreen()));
-
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RegistrationScreen(),
+                            ),
+                          );
                         },
-                        child:  Text(
+                        child: Text(
                           'Sign Up',
                           style: TextStyle(
                             color: Colors.white,
@@ -279,4 +359,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

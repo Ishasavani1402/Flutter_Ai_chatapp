@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ChatApp',
+      title: 'ChatWave',
       debugShowCheckedModeBanner: false,
       home: SplashScreen(),
     );

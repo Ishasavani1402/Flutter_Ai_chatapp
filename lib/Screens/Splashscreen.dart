@@ -6,6 +6,7 @@ import 'package:chatapp/Screens/ChatBot.dart';
 import 'package:chatapp/UserAuth/Login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../UserAuth/RegisterScreen.dart';
 // The SplashScreen widget, which is a stateful widget to manage its state.
@@ -63,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[800], // Dark blue background
+      backgroundColor: Colors.blueAccent, // Dark blue background
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -75,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 return Transform.scale(
                   scale: _scaleAnimation.value,
                   child: const Icon(
-                    Icons.chat_bubble_rounded, // Chat icon
+                    FontAwesomeIcons.message, // Chat icon
                     size: 100.0,
                     color: Colors.white,
                   ),
