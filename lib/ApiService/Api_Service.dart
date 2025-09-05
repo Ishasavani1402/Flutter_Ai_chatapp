@@ -1,16 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dash_chat_2/dash_chat_2.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
   static final url =
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-  static final Api_Key = "AIzaSyB3lhbHtTkhtSK-_NJG6Wt7Y8X1oXCYfQE";
 
+  static String get Api_key => dotenv.env['Api_Key'] ?? "default_key";
   static final headerdata = {
     "Content-Type": "application/json",
-    "X-goog-api-key": Api_Key,
+    "X-goog-api-key": Api_key,
   };
 
   static Future<String> get_api_data(ChatMessage message) async {
