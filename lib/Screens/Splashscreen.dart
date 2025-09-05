@@ -47,6 +47,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Set up a timer to navigate to the ChatScreen after a delay.
     Timer(const Duration(seconds: 3), () {
      final user = FirebaseAuth.instance.currentUser;
+     print("current user : ${user!.displayName}");
       if(user != null){
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Chatbot()));
       }else{

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart'; // Added for DateFormat
 
 class Chatbot extends StatefulWidget {
@@ -25,13 +26,14 @@ class _ChatbotState extends State<Chatbot> {
 
   List<ChatMessage> allMessages = [];
   List<ChatUser> _typing = [];
+  final ImagePicker _picker = ImagePicker(); // Initialize ImagePicker
 
   void getData(ChatMessage m) async {
     _typing.add(bot);
     allMessages.insert(0, m);
     setState(() {});
     try {
-      final responseData = await ApiService.get_api_data(m.text);
+      final responseData = await ApiService.get_api_data(m);
       ChatMessage m1 = ChatMessage(
         user: bot,
         text: responseData,
@@ -43,6 +45,25 @@ class _ChatbotState extends State<Chatbot> {
     }
     _typing.remove(bot);
     setState(() {});
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      // Create a ChatMessage with the image
+      ChatMessage imageMessage = ChatMessage(
+        user: myself,
+        createdAt: DateTime.now(),
+        medias: [
+          ChatMedia(
+            url: image.path,
+            type: MediaType.image,
+            fileName: image.name,
+          ),
+        ],
+      );
+      getData(imageMessage);
+    }
   }
 
   // void copytoclipbord(String text) {
@@ -138,7 +159,7 @@ class _ChatbotState extends State<Chatbot> {
           },
           messages: allMessages,
           inputOptions: InputOptions(
-            alwaysShowSend: true,
+            alwaysShowSend: false,
             cursorStyle: const CursorStyle(color: Colors.blueAccent),
             inputDecoration: InputDecoration(
               hintText: "Type a message...",
@@ -165,6 +186,18 @@ class _ChatbotState extends State<Chatbot> {
                 ),
               ),
             ),
+            // leading: [
+            //   IconButton(
+            //     icon: const Icon(Icons.image, color: Colors.blueAccent),
+            //     onPressed: _pickImage, // Add image picker button
+            //   ),
+            // ],
+            trailing: [
+              IconButton(
+                icon: const Icon(Icons.image, color: Colors.blueAccent),
+                onPressed: _pickImage, // Add image picker button
+              ),
+            ],
             sendButtonBuilder:
                 (Function send) => IconButton(
                   icon: const Icon(Icons.send, color: Colors.blueAccent),
@@ -203,6 +236,8 @@ class _ChatbotState extends State<Chatbot> {
                 toolbarOptions: const ToolbarOptions(
                   copy: true,
                   selectAll: true,
+                  paste: true,
+                  cut: true
                 ),
                 onSelectionChanged: (
                   TextSelection selection,
