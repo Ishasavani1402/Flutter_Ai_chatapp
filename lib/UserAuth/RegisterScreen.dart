@@ -2,6 +2,8 @@ import 'package:chatapp/Screens/ChatBot.dart';
 import 'package:chatapp/UserAuth/Login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../theme_provider.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -15,31 +17,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _passwordController = TextEditingController();
   bool obcursed = true;
 
-  Future<void> registeruser()async{
+  Future<void> registeruser() async {
     var email = _emailController.text;
     var password = _passwordController.text;
-    print("Register Email : $email");
-    print("Register Password : $password");
-    try{
-      if(email.isNotEmpty && password.isNotEmpty){
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password).
-    then((value)=> Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Chatbot())));
-
-      }else{
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please Enter Email and Password!!!"),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating));
+    try {
+      if (email.isNotEmpty && password.isNotEmpty) {
+        await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(email: email, password: password)
+            .then((value) => Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Chatbot()),
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Please Enter Email and Password!!!"),
+            backgroundColor: Theme.of(context).snackBarTheme.backgroundColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
-
-    }on FirebaseAuthException catch(e){
-      print("Registration failed : ${e.toString()}");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Registration failed : ${e.toString()}"),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating));
-
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Registration failed: ${e.message}"),
+          backgroundColor: Theme.of(context).snackBarTheme.backgroundColor,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
-
 
   @override
   void dispose() {
@@ -54,150 +61,139 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blueAccent,
-                  Colors.blue],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+      backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.blueAccent : Colors.black,
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'ChatWave',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                ),
               ),
-            ),
-          ),
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
+              const SizedBox(height: 16),
+              Text(
+                'Create Your Account',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
+              SizedBox(height: screenHeight * 0.05),
+              Container(
+                width: screenWidth * 0.85,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        labelText: 'Email Address',
+                        prefixIcon: Icon(
+                          Icons.email_outlined,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        hintStyle: Theme.of(context).inputDecorationTheme.hintStyle,
+                        filled: Theme.of(context).inputDecorationTheme.filled,
+                        fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                        labelStyle: Theme.of(context).inputDecorationTheme.labelStyle,
+                        border: Theme.of(context).inputDecorationTheme.border,
+                        enabledBorder: Theme.of(context).inputDecorationTheme.enabledBorder,
+                        focusedBorder: Theme.of(context).inputDecorationTheme.focusedBorder,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: obcursed,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        prefixIcon: Icon(
+                          Icons.lock_outlined,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              obcursed = !obcursed;
+                            });
+                          },
+                          icon: obcursed
+                              ? const Icon(Icons.visibility_off)
+                              : const Icon(Icons.visibility),
+                        ),
+                        hintStyle: Theme.of(context).inputDecorationTheme.hintStyle,
+                        filled: Theme.of(context).inputDecorationTheme.filled,
+                        fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                        labelStyle: Theme.of(context).inputDecorationTheme.labelStyle,
+                        border: Theme.of(context).inputDecorationTheme.border,
+                        enabledBorder: Theme.of(context).inputDecorationTheme.enabledBorder,
+                        focusedBorder: Theme.of(context).inputDecorationTheme.focusedBorder,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      onPressed: registeruser,
+                      style: Theme.of(context).elevatedButtonTheme.style,
+                      child: Text(
+                        'REGISTER',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: screenHeight * 0.03),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'ChatWave',
-                    style: TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 2,
+                  Text(
+                    'Already have an account?',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).textTheme.titleMedium?.color,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Create Your Account',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.05),
-                  Container(
-                    width: screenWidth * 0.85,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            labelText: 'Email Address',
-                            labelStyle: TextStyle(color: Colors.blueGrey.shade700),
-                            prefixIcon: const Icon(Icons.email_outlined, color: Colors.blueAccent),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: Colors.blue.shade50,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: obcursed,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            labelStyle: TextStyle(color: Colors.blueGrey.shade700),
-                            prefixIcon: const Icon(Icons.lock_outlined, color: Colors.blueAccent),
-                            suffixIcon: IconButton(onPressed: (){
-                              setState(() {
-                                obcursed = !obcursed;
-                              });
-                            }, icon: obcursed
-                                ?  Icon(Icons.visibility_off)
-                            :  Icon(Icons.visibility)),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: Colors.blue.shade50,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        ElevatedButton(
-                          onPressed: registeruser,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            elevation: 5,
-                          ),
-                          child: const Text(
-                            'REGISTER',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.03),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Already have an account?',
-                        style: TextStyle(color: Colors.white70),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                          context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+                    },
+                    child: Text(
+                      'Login',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(context,MaterialPageRoute(builder: (context)=> LoginScreen()));
-                        },
-                        child: const Text(
-                          'Login',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    ),
                 ],
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

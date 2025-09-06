@@ -44,10 +44,23 @@ dependencies:
   google_sign_in: ^6.3.0
   image_picker: ^1.2.0
   flutter_dotenv: ^6.0.0
+  provider: ^6.1.5+1
+  shared_preferences: ^2.5.3
+  flutter_launcher_icons: ^0.14.4
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/applogo.png"
+  min_sdk_android: 21
+#  adaptive_icon_background : "#ffffff"
+#  adaptive_icon_foreground : "assets/applogo.png"
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

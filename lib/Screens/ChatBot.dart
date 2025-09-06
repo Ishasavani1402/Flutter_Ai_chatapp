@@ -7,7 +7,10 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart'; // Added for DateFormat
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+import '../theme_provider.dart';
 
 class Chatbot extends StatefulWidget {
   const Chatbot({super.key});
@@ -22,11 +25,14 @@ class _ChatbotState extends State<Chatbot> {
     firstName: 'Charles',
     lastName: 'Leclerc',
   );
-  ChatUser bot = ChatUser(id: '2', firstName: 'Gemini');
+  ChatUser bot = ChatUser(
+    id: '2',
+    firstName: 'Gemini',
+  );
 
   List<ChatMessage> allMessages = [];
   List<ChatUser> _typing = [];
-  final ImagePicker _picker = ImagePicker(); // Initialize ImagePicker
+  final ImagePicker _picker = ImagePicker();
 
   void getData(ChatMessage m) async {
     _typing.add(bot);
@@ -50,7 +56,6 @@ class _ChatbotState extends State<Chatbot> {
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      // Create a ChatMessage with the image
       ChatMessage imageMessage = ChatMessage(
         user: myself,
         createdAt: DateTime.now(),
@@ -66,33 +71,45 @@ class _ChatbotState extends State<Chatbot> {
     }
   }
 
-  // void copytoclipbord(String text) {
-  //   Clipboard.setData(ClipboardData(text: text));
-  //   ScaffoldMessenger.of(
-  //     context,
-  //   ).showSnackBar(const SnackBar(content: Text("Copied to clipboard")));
-  // }
-
-  Future<void> logout()async{
-    await FirebaseAuth.instance.signOut().
-    then((val)=> Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> LoginScreen())));
+  Future<void> logout() async {
+    await FirebaseAuth.instance.signOut().then(
+          (val) => Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      ),
+    );
   }
+
   Future<void> _showLogoutDialog() async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text('Logout', style: GoogleFonts.poppins(fontWeight: FontWeight.bold,
-              color: Color(0xFF142B1A))),
-          content: Text('Are you sure you want to log out?', style: GoogleFonts.poppins(
-              color: Color(0xFF142B1A)
-          )),
+          title: Text(
+            'Logout',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.bodyMedium!.color,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to log out?',
+            style: GoogleFonts.poppins(
+              color: Theme.of(context).textTheme.bodyMedium!.color,
+            ),
+          ),
           actions: <Widget>[
             TextButton(
-              child: Text('No', style: GoogleFonts.poppins(color: Colors.blueAccent, fontWeight: FontWeight.w600)),
+              child: Text(
+                'No',
+                style: GoogleFonts.poppins(
+                  color: Theme.of(context).textButtonTheme.style!.foregroundColor!.resolve({}),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -103,8 +120,6 @@ class _ChatbotState extends State<Chatbot> {
                 await logout();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               child: Text('Yes', style: GoogleFonts.poppins()),
@@ -115,11 +130,9 @@ class _ChatbotState extends State<Chatbot> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
@@ -128,9 +141,22 @@ class _ChatbotState extends State<Chatbot> {
           ),
         ),
         actions: [
-          IconButton(onPressed: _showLogoutDialog,   icon:  Icon(FontAwesomeIcons.rightFromBracket,color: Colors.white,),)
+          IconButton(
+            onPressed: () {
+              Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+            },
+            icon: Icon(
+              Provider.of<ThemeProvider>(context).isDarkTheme
+                  ? FontAwesomeIcons.sun
+                  : FontAwesomeIcons.moon,
+              color: Colors.white,
+            ),
+          ),
+          IconButton(
+            onPressed: _showLogoutDialog,
+            icon: Icon(FontAwesomeIcons.rightFromBracket, color: Colors.white),
+          ),
         ],
-        backgroundColor: Colors.blueAccent,
         title: const Text(
           "ChatBot",
           style: TextStyle(
@@ -146,7 +172,10 @@ class _ChatbotState extends State<Chatbot> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.grey.shade100, Colors.white],
+            colors: [
+              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).scaffoldBackgroundColor,
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -160,12 +189,12 @@ class _ChatbotState extends State<Chatbot> {
           messages: allMessages,
           inputOptions: InputOptions(
             alwaysShowSend: false,
-            cursorStyle: const CursorStyle(color: Colors.blueAccent),
+            cursorStyle: CursorStyle(color: Theme.of(context).primaryColor),
             inputDecoration: InputDecoration(
               hintText: "Type a message...",
               hintStyle: TextStyle(color: Colors.grey.shade500),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: Theme.of(context).inputDecorationTheme.fillColor,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 12,
@@ -180,34 +209,34 @@ class _ChatbotState extends State<Chatbot> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(25),
-                borderSide: const BorderSide(
-                  color: Colors.blueAccent,
+                borderSide: BorderSide(
+                  color: Theme.of(context).primaryColor,
                   width: 2,
                 ),
               ),
             ),
-            // leading: [
-            //   IconButton(
-            //     icon: const Icon(Icons.image, color: Colors.blueAccent),
-            //     onPressed: _pickImage, // Add image picker button
-            //   ),
-            // ],
             trailing: [
               IconButton(
-                icon: const Icon(Icons.image, color: Colors.blueAccent),
-                onPressed: _pickImage, // Add image picker button
+                icon: Icon(Icons.image, color: Theme.of(context).brightness == Brightness.dark ?
+                Colors.white :
+                Theme.of(context).primaryColor),
+                onPressed: _pickImage,
               ),
             ],
-            sendButtonBuilder:
-                (Function send) => IconButton(
-                  icon: const Icon(Icons.send, color: Colors.blueAccent),
-                  onPressed: () => send(),
-                ),
+            sendButtonBuilder: (Function send) => IconButton(
+              icon: Icon(Icons.send, color: Theme.of(context).brightness == Brightness.dark ?
+              Colors.white :
+              Theme.of(context).primaryColor),
+              onPressed: () => send(),
+            ),
           ),
           messageOptions: MessageOptions(
-            currentUserContainerColor: Colors.blueAccent,
-            containerColor: Colors.grey.shade200,
-            textColor: Colors.black87,
+            currentUserContainerColor: Theme.of(context).brightness ==
+                Brightness.light ? Colors.blueAccent : Colors.grey.shade700,
+            containerColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey.shade800
+                : Colors.grey.shade200,
+            textColor: Theme.of(context).textTheme.bodyMedium!.color!,
             currentUserTextColor: Colors.white,
             messagePadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -216,54 +245,45 @@ class _ChatbotState extends State<Chatbot> {
             borderRadius: 20,
             showTime: true,
             timeTextColor: Colors.grey.shade600,
-            // onLongPressMessage: (ChatMessage message) {
-            //   copytoclipbord(message.text);
-            // },
             messageTextBuilder: (
-              ChatMessage message,
-              ChatMessage? previousmsg,
-              ChatMessage? nextmsg,
-            ) {
+                ChatMessage message,
+                ChatMessage? previousmsg,
+                ChatMessage? nextmsg,
+                ) {
               return SelectableText(
                 message.text,
                 style: TextStyle(
-                  color:
-                      message.user.id == myself.id
-                          ? Colors.white
-                          : Colors.black87,
+                  color: message.user.id == myself.id
+                      ? Colors.white
+                      : Theme.of(context).textTheme.bodyMedium!.color,
                   fontSize: 16,
                 ),
                 toolbarOptions: const ToolbarOptions(
                   copy: true,
                   selectAll: true,
                   paste: true,
-                  cut: true
+                  cut: true,
                 ),
-                onSelectionChanged: (
-                  TextSelection selection,
-                  SelectionChangedCause? cause,
-                ) {
-                  if (cause == SelectionChangedCause.longPress) {
-                    // copytoclipbord(message.text);
-                  }
-                },
               );
             },
             avatarBuilder: (
-              ChatUser user,
-              Function? onPress,
-              Function? onLongPress,
-            ) {
+                ChatUser user,
+                Function? onPress,
+                Function? onLongPress,
+                ) {
               return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: CircleAvatar(
-                  radius: 20,
-                  backgroundImage: const AssetImage("assets/gamini.png"),
+                  // radius: 20,
+                  backgroundImage: AssetImage("assets/gemini.png"),
                   backgroundColor: Colors.grey.shade300,
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.blueAccent, width: 2),
+                      border: Border.all(color:
+                      Theme.of(context).brightness == Brightness.dark ?
+                      Colors.grey.shade700 :
+                      Colors.deepPurple, width: 2),
                     ),
                   ),
                 ),
@@ -273,9 +293,7 @@ class _ChatbotState extends State<Chatbot> {
           messageListOptions: MessageListOptions(
             scrollPhysics: const BouncingScrollPhysics(),
             showDateSeparator: true,
-            dateSeparatorFormat: DateFormat(
-              'MMM d, yyyy',
-            ), // Using intl package
+            dateSeparatorFormat: DateFormat('MMM d, yyyy'),
           ),
         ),
       ),
