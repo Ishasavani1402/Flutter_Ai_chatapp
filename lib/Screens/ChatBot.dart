@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -72,12 +73,17 @@ class _ChatbotState extends State<Chatbot> {
   }
 
   Future<void> logout() async {
-    await FirebaseAuth.instance.signOut().then(
-          (val) => Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-      ),
-    );
+    try{
+      await GoogleSignIn().signOut();
+      await FirebaseAuth.instance.signOut().then(
+            (val) => Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        ),
+      );
+    }on FirebaseAuthException catch(e){
+      print("Error for logout : ${e.message}");
+    }
   }
 
   Future<void> _showLogoutDialog() async {
@@ -132,6 +138,7 @@ class _ChatbotState extends State<Chatbot> {
 
   @override
   Widget build(BuildContext context) {
+    final bool islogin = FirebaseAuth.instance.currentUser!=null;// check if user is logged in or not
     return Scaffold(
       appBar: AppBar(
         shape: RoundedRectangleBorder(
@@ -151,10 +158,22 @@ class _ChatbotState extends State<Chatbot> {
                   : FontAwesomeIcons.moon,
               color: Colors.white,
             ),
+            tooltip: 'Toggle Theme', // Fixed typo: 'tootltip' -> 'tooltip'
           ),
           IconButton(
-            onPressed: _showLogoutDialog,
-            icon: Icon(FontAwesomeIcons.rightFromBracket, color: Colors.white),
+            onPressed: islogin ? _showLogoutDialog : () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
+            },
+            icon: Icon(
+              islogin
+                  ? FontAwesomeIcons.rightFromBracket
+                  : FontAwesomeIcons.rightToBracket,
+              color: Colors.white,
+            ),
+            tooltip: islogin ? 'Logout' : 'Login',
           ),
         ],
         title: const Text(

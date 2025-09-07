@@ -43,6 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } on FirebaseAuthException catch (e) {
+      print("Error For login: ${e.message}");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error For login: ${e.message}"),
@@ -68,6 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (googleUser == null) {
+        print("Error for google login ");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text("Sign in error!!"),
