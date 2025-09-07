@@ -7,7 +7,7 @@
 ✔ Dash_Chat for ui<br>
 ✔ Firebase(SEcure Authentication)<br>
 
-# Features
+# 🎯Features
 ✔ Secure Login and Registratin(Google auth)<br>
 ✔ text as well as Image based Prompt<br>
 ✔ dynamic Theme change(light dark)<br>
