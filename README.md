@@ -1,16 +1,20 @@
-# chatapp
+# Introduction
+-> This is flutter AI Chatbot Application just like Gemini , chatGPT... where user can give prompt as a text and image and Ai would give you answer....
 
-A new Flutter project.
+# 💻TeckStack
+✔ Flutter<br>
+✔ Gemini 2.0 flash API<br>
+✔ Dash_Chat for ui<br>
+✔ Firebase(SEcure Authentication)<br>
 
-## Getting Started
+# 🎯Features
+✔ Secure Login and Registratin(Google auth)<br>
+✔ text as well as Image based Prompt<br>
+✔ dynamic Theme change(light dark)<br>
+✔ also usewithout login and registration process also<br>
 
-This project is a starting point for a Flutter application.
+# Show Demo
 
-A few resources to get you started if this is your first Flutter project:
+https://github.com/user-attachments/assets/be8111a3-228a-4c4c-8b57-a616aec356fa
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
