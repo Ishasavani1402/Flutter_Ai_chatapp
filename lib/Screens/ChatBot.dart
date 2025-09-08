@@ -158,7 +158,7 @@ class _ChatbotState extends State<Chatbot> {
                   : FontAwesomeIcons.moon,
               color: Colors.white,
             ),
-            tooltip: 'Toggle Theme', // Fixed typo: 'tootltip' -> 'tooltip'
+            tooltip: 'Toggle Theme',
           ),
           IconButton(
             onPressed: islogin ? _showLogoutDialog : () {
