@@ -1,7 +1,7 @@
 # Introduction
 -> This is flutter AI Chatbot Application just like Gemini , chatGPT... where user can give prompt as a text and image and Ai would give you answer....
 
-# 💻TechStack
+# 💻TeckStack
 ✔ Flutter<br>
 ✔ Gemini 2.0 flash API<br>
 ✔ Dash_Chat for ui<br>
