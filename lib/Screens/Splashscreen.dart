@@ -36,6 +36,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     Timer(const Duration(seconds: 3), () {
       final user = FirebaseAuth.instance.currentUser;
+      print("user : ${FirebaseAuth.instance.currentUser}");
       if (user != null) {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) =>  Chatbot()));
       } else {

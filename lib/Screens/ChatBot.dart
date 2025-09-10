@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../FirestoreService.dart';
 import '../theme_provider.dart';
 
 class Chatbot extends StatefulWidget {
@@ -37,7 +38,8 @@ class _ChatbotState extends State<Chatbot> {
 
   void getData(ChatMessage m) async {
     _typing.add(bot);
-    allMessages.insert(0, m);
+    // allMessages.insert(0, m);
+    allMessages.add(m);
     setState(() {});
     try {
       final responseData = await ApiService.get_api_data(m);
@@ -46,13 +48,19 @@ class _ChatbotState extends State<Chatbot> {
         text: responseData,
         createdAt: DateTime.now(),
       );
-      allMessages.insert(0, m1);
+      // allMessages.insert(0, m1);
+      allMessages.add(m1);
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirestoreService.saveMessage(user.uid, m, m1);
+      }
     } catch (e) {
       print(e.toString());
     }
     _typing.remove(bot);
     setState(() {});
   }
+
 
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -139,6 +147,7 @@ class _ChatbotState extends State<Chatbot> {
   @override
   Widget build(BuildContext context) {
     final bool islogin = FirebaseAuth.instance.currentUser!=null;// check if user is logged in or not
+    final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
       appBar: AppBar(
         shape: RoundedRectangleBorder(
@@ -176,7 +185,7 @@ class _ChatbotState extends State<Chatbot> {
             tooltip: islogin ? 'Logout' : 'Login',
           ),
         ],
-        title: const Text(
+        title: Text(
           "ChatBot",
           style: TextStyle(
             color: Colors.white,
@@ -188,134 +197,142 @@ class _ChatbotState extends State<Chatbot> {
         elevation: 4,
         shadowColor: Colors.black54,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).scaffoldBackgroundColor,
-              Theme.of(context).scaffoldBackgroundColor,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: DashChat(
-          typingUsers: _typing,
-          currentUser: myself,
-          onSend: (ChatMessage m) {
-            getData(m);
-          },
-          messages: allMessages,
-          inputOptions: InputOptions(
-            alwaysShowSend: false,
-            cursorStyle: CursorStyle(color: Theme.of(context).primaryColor),
-            inputDecoration: InputDecoration(
-              hintText: "Type a message...",
-              hintStyle: TextStyle(color: Colors.grey.shade500),
-              filled: true,
-              fillColor: Theme.of(context).inputDecorationTheme.fillColor,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
-                borderSide: BorderSide(
-                  color: Theme.of(context).primaryColor,
-                  width: 2,
+      body: StreamBuilder<List<ChatMessage>>(
+      stream: user != null ? FirestoreService.getMessages(user.uid) : Stream.value([]),
+          builder: (context , snapshot){
+            if(snapshot.hasData){
+              allMessages = snapshot.data!;
+            }
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).scaffoldBackgroundColor,
+                    Theme.of(context).scaffoldBackgroundColor,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
               ),
-            ),
-            trailing: [
-              IconButton(
-                icon: Icon(Icons.image, color: Theme.of(context).brightness == Brightness.dark ?
-                Colors.white :
-                Theme.of(context).primaryColor),
-                onPressed: _pickImage,
-              ),
-            ],
-            sendButtonBuilder: (Function send) => IconButton(
-              icon: Icon(Icons.send, color: Theme.of(context).brightness == Brightness.dark ?
-              Colors.white :
-              Theme.of(context).primaryColor),
-              onPressed: () => send(),
-            ),
-          ),
-          messageOptions: MessageOptions(
-            currentUserContainerColor: Theme.of(context).brightness ==
-                Brightness.light ? Colors.blueAccent : Colors.grey.shade700,
-            containerColor: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey.shade800
-                : Colors.grey.shade200,
-            textColor: Theme.of(context).textTheme.bodyMedium!.color!,
-            currentUserTextColor: Colors.white,
-            messagePadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 10,
-            ),
-            borderRadius: 20,
-            showTime: true,
-            timeTextColor: Colors.grey.shade600,
-            messageTextBuilder: (
-                ChatMessage message,
-                ChatMessage? previousmsg,
-                ChatMessage? nextmsg,
-                ) {
-              return SelectableText(
-                message.text,
-                style: TextStyle(
-                  color: message.user.id == myself.id
-                      ? Colors.white
-                      : Theme.of(context).textTheme.bodyMedium!.color,
-                  fontSize: 16,
-                ),
-                toolbarOptions: const ToolbarOptions(
-                  copy: true,
-                  selectAll: true,
-                  paste: true,
-                  cut: true,
-                ),
-              );
-            },
-            avatarBuilder: (
-                ChatUser user,
-                Function? onPress,
-                Function? onLongPress,
-                ) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: CircleAvatar(
-                  // radius: 20,
-                  backgroundImage: AssetImage("assets/gemini.png"),
-                  backgroundColor: Colors.grey.shade300,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color:
-                      Theme.of(context).brightness == Brightness.dark ?
-                      Colors.grey.shade700 :
-                      Colors.deepPurple, width: 2),
+              child: DashChat(
+                typingUsers: _typing,
+                currentUser: myself,
+                onSend: (ChatMessage m) {
+                  getData(m);
+                },
+                messages: allMessages,
+                inputOptions: InputOptions(
+                  alwaysShowSend: false,
+                  cursorStyle: CursorStyle(color: Theme.of(context).primaryColor),
+                  inputDecoration: InputDecoration(
+                    hintText: "Type a message...",
+                    hintStyle: TextStyle(color: Colors.grey.shade500),
+                    filled: true,
+                    fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(25),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(25),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(25),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).primaryColor,
+                        width: 2,
+                      ),
                     ),
                   ),
+                  trailing: [
+                    IconButton(
+                      icon: Icon(Icons.image, color: Theme.of(context).brightness == Brightness.dark ?
+                      Colors.white :
+                      Theme.of(context).primaryColor),
+                      onPressed: _pickImage,
+                    ),
+                  ],
+                  sendButtonBuilder: (Function send) => IconButton(
+                    icon: Icon(Icons.send, color: Theme.of(context).brightness == Brightness.dark ?
+                    Colors.white :
+                    Theme.of(context).primaryColor),
+                    onPressed: () => send(),
+                  ),
                 ),
-              );
-            },
-          ),
-          messageListOptions: MessageListOptions(
-            scrollPhysics: const BouncingScrollPhysics(),
-            showDateSeparator: true,
-            dateSeparatorFormat: DateFormat('MMM d, yyyy'),
-          ),
-        ),
-      ),
+                messageOptions: MessageOptions(
+                  currentUserContainerColor: Theme.of(context).brightness ==
+                      Brightness.light ? Colors.blueAccent : Colors.grey.shade700,
+                  containerColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey.shade800
+                      : Colors.grey.shade200,
+                  textColor: Theme.of(context).textTheme.bodyMedium!.color!,
+                  currentUserTextColor: Colors.white,
+                  messagePadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  borderRadius: 20,
+                  showTime: true,
+                  timeTextColor: Colors.grey.shade600,
+                  messageTextBuilder: (
+                      ChatMessage message,
+                      ChatMessage? previousmsg,
+                      ChatMessage? nextmsg,
+                      ){
+                    return SelectableText(
+                      message.text,
+                      style: TextStyle(
+                        color: message.user.id == myself.id
+                            ? Colors.white
+                            : Theme.of(context).textTheme.bodyMedium!.color,
+                        fontSize: 16,
+                      ),
+                      toolbarOptions: const ToolbarOptions(
+                        copy: true,
+                        selectAll: true,
+                        paste: true,
+                        cut: true,
+                      ),
+                    );
+                  },
+                  avatarBuilder: (
+                      ChatUser user,
+                      Function? onPress,
+                      Function? onLongPress,
+                      ) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CircleAvatar(
+                        // radius: 20,
+                        backgroundImage: AssetImage("assets/gemini.png"),
+                        backgroundColor: Colors.grey.shade300,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color:
+                            Theme.of(context).brightness == Brightness.dark ?
+                            Colors.grey.shade700 :
+                            Colors.deepPurple, width: 2),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                messageListOptions: MessageListOptions(
+                  scrollPhysics: const BouncingScrollPhysics(),
+                  showDateSeparator: true,
+                  dateSeparatorFormat: DateFormat('MMM d, yyyy'),
+                ),
+              ),
+            );
+          })
     );
   }
 }
+

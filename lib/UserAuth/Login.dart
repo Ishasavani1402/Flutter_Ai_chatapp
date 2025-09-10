@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> login() async {
     var email = _emailController.text;
     var password = _passwordController.text;
+    print("user : ${FirebaseAuth.instance.currentUser}");
     try {
       if (email.isNotEmpty && password.isNotEmpty) {
         await FirebaseAuth.instance
@@ -44,6 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on FirebaseAuthException catch (e) {
       print("Error For login: ${e.message}");
+      // log("Error For login: ${e.message}");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error For login: ${e.message}"),
